@@ -3,4 +3,4 @@
 #include <string>
 
 //Declaration for game functions
-std::string oddOrEven(int num);
+std::string oddEvenDeterminator(int num);

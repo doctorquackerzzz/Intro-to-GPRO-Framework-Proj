@@ -3,9 +3,9 @@
 
 #include <string>
 
-std::string oddOrEven(int num)
+std::string oddEvenDeterminator(int num)
 {
 	if (num % 2 == 0)
-		return "Even";
-	return "Odd";
+		return "This number is Even";
+	return "This number is Odd";
 }
