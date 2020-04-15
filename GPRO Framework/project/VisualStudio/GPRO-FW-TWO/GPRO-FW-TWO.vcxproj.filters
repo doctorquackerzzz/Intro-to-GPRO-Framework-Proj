@@ -15,7 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\source\GPRO-FW-Launcher\GPRO-FW-Launcher_main.cpp">
+    <ClInclude Include="..\..\..\include\GPRO-FW-TWO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\source\GPRO-FW-TWO\foo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\source\GPRO-FW-TWO\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
