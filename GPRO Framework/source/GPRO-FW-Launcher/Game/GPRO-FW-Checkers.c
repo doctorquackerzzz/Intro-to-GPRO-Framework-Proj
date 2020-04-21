@@ -65,9 +65,21 @@ inline gs_checkers_index gs_checkers_reset(gs_checkers game)
 }
 
 //Colin's Functions
-void gs_checkers_userInput(gs_checkers);
+void gs_checkers_userInput(gs_checkers, int); //Gets user input
 
-void gs_checkers_displayBoard(gs_checkers);
+void gs_checkers_displayBoard(gs_checkers); //Displays board
+
+void gs_checkers_checkKings(gs_checkers); //Makes correct pieces into kings
+
+int gs_checkers_checkWin(gs_checkers); //Checks for win
+
+void gs_checkers_move_black(gs_checkers, int, int); //Moves Black
+
+void gs_checkers_move_white(gs_checkers, int, int); //Moves White
+
+void gs_checkers_move_black_king(gs_checkers, int, int); //Moves Black Kings
+
+void gs_checkers_move_white_king(gs_checkers, int, int); //Moves White Kings
 
 //-----------------------------------------------------------------------------
 // DEFINITIONS
@@ -78,14 +90,116 @@ int launchCheckers()
 
 	gs_checkers_reset(game);
 
+	int player = 0;
+
+	do {
 		gs_checkers_displayBoard(game);
 
+		gs_checkers_userInput(game, player);
+
+		gs_checkers_checkKings(game);
+
+		//Switch active player
+		if (player == 1)
+			player = 0;
+		else
+			player = 1;
+
+	} while (gs_checkers_checkWin(game) == 0);
+
+	gs_checkers_displayBoard(game);
+
+	if (gs_checkers_checkWin(game) == 1)
+		printf("BLACK WINS!!!!!!!!!!!!");
+	else
+		printf("WHITE WINS!!!!!!!!!!!!");
+
+	system("puase");
 
 	return 0;
 }
 
-void gs_checkers_userInput(gs_checkers game) {
+//Gets all of the user input
+void gs_checkers_userInput(gs_checkers game, int player) { //player 0 = black 1 = white
+	int piece_x, piece_y;
 
+	gs_checkers_space_state piece;
+
+	int good = 0; //used to find if the piece or move is good
+
+	if (player == 0)
+		printf("--Black's Move--\n");
+	else
+		printf("--White's Move--\n");
+
+	//Find Piece
+	do {
+		//Get Input to find piece
+		printf("Select a piece to move\nX: ");
+		scanf("%d", &piece_x);
+		printf("Y: ");
+		scanf("%d", &piece_y);
+		
+		//Gets the right piece
+		piece_x--;
+		piece_y--;
+
+		//Get piece state
+		piece = gs_checkers_getSpaceState(game, piece_y, piece_x);
+		
+		//Check piece validity
+		switch (piece) {
+		case gs_checkers_space_open:
+			good = 0;
+			break;
+		case gs_checkers_space_white:
+			if (player == 1)
+				good = 1;
+			else
+				good = 0;
+			break;
+		case gs_checkers_space_white_king:
+			if (player == 1)
+				good = 1;
+			else
+				good = 0;
+			break;
+		case gs_checkers_space_black:
+			if (player == 0)
+				good = 1;
+			else
+				good = 0;
+			break;
+		case gs_checkers_space_black_king:
+			if (player == 0)
+				good = 1;
+			else
+				good = 0;
+			break;
+		}
+
+		//Print error if needed
+		if (good == 0)
+			printf("ERROR:Invalid Piece, try again\n");
+	} while (good == 0);//Run again if invalid piece
+
+	//Runs Move Function For Piece
+	switch (piece) {
+	case gs_checkers_space_white:
+		gs_checkers_move_white(game, piece_x, piece_y);
+		break;
+	case gs_checkers_space_white_king:
+		gs_checkers_move_white_king(game, piece_x, piece_y);
+		break;
+	case gs_checkers_space_black:
+		gs_checkers_move_black(game, piece_x, piece_y);
+		break;
+	case gs_checkers_space_black_king:
+		gs_checkers_move_black_king(game, piece_x, piece_y);
+		break;
+	}
+
+	gs_checkers_checkKings(game); //Sets piece that should be kinged to kings
 }
 
 //Displays the board
@@ -100,11 +214,13 @@ void gs_checkers_displayBoard(gs_checkers game) {
 	};
 	gs_checkers_space_state currentSpace;
 
-	system("CLS"); //Cleans the screen
+	system("CLS"); //Cleans the screen before printing the new board
 
 	printf("\n\t\tCheckers\n\n");
 
+	printf("\n X--1----2----3----4----5----6----7----8-\nY\n");
 	for (int i = 0; i < GS_CHECKERS_BOARD_HEIGHT; i++) {
+		printf("%d ", i+1);
 		for (int j = 0; j < GS_CHECKERS_BOARD_WIDTH; j++) {
 			//Gets the space state
 			currentSpace = gs_checkers_getSpaceState(game, i, j);
@@ -116,11 +232,308 @@ void gs_checkers_displayBoard(gs_checkers game) {
 		}
 		//Adds line for grid
 		if (i != 7)
-			printf("\n---------------------------------------\n");
+			printf("\n| ---------------------------------------\n");
 		else
 			printf("\n\n");//Space for the end
 	}
 }
 
+void gs_checkers_checkKings(gs_checkers game) {
+	for (int i = 0; i < GS_CHECKERS_BOARD_WIDTH; i++) {
+		if (gs_checkers_getSpaceState(game, 0, i) == gs_checkers_space_white)
+			gs_checkers_setSpaceState(game, gs_checkers_space_white_king, 0, i);
+		if (gs_checkers_getSpaceState(game, 7, i) == gs_checkers_space_black)
+			gs_checkers_setSpaceState(game, gs_checkers_space_black_king, 7, i);
+	}
+}
+
+int gs_checkers_checkWin(gs_checkers game) {
+	int black = 0, white = 0;
+
+	for (int i = 0; i < GS_CHECKERS_BOARD_HEIGHT; i++) {
+		for (int j = 0; j < GS_CHECKERS_BOARD_WIDTH; j++) {
+			if (gs_checkers_getSpaceState(game, j, i) == gs_checkers_space_white)
+				white++;
+			if (gs_checkers_getSpaceState(game, j, i) == gs_checkers_space_black)
+				black++;
+		}
+	}
+
+	if (black == 0)
+		return 1;
+	else if (white == 0)
+		return 2;
+	else
+		return 0;
+}
+
+void gs_checkers_move_black(gs_checkers game, int piece_x, int piece_y) {
+	//Move info
+	int move_x, move_y;
+	gs_checkers_space_state move;
+
+	int good = 0;//Checks if move is good
+
+	do {
+		do {
+			//Get move info
+			printf("Select a place to move to\nX: ");
+			scanf("%d", &move_x);
+			printf("Y: ");
+			scanf("%d", &move_y);
+
+			//Gets the right space
+			move_x--;
+			move_y--;
+
+			move = gs_checkers_getSpaceState(game, move_y, move_x);
+
+			if (move != gs_checkers_space_open)
+				printf("ERROR: Selected Move Is Not Open\n");
+		} while (move != gs_checkers_space_open);
+
+		//Move
+		if ((move_y == piece_y + 1) && ((move_x == piece_x + 1) || (move_x == piece_x - 1))) {
+			gs_checkers_setSpaceState(game, gs_checkers_space_black, move_y, move_x); //Move piece to space
+			gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+			good = 1; //Move Complete
+		}
+
+		//Jump Right
+		if ((move_y == piece_y + 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Left
+		if ((move_y == piece_y + 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+	} while (good == 0);
+}
+
+void gs_checkers_move_white(gs_checkers game, int piece_x, int piece_y) {
+	//Move info
+	int move_x, move_y;
+	gs_checkers_space_state move;
+
+	int good = 0;//Checks if move is good
+
+	do {
+		do {
+			//Get move info
+			printf("Select a place to move to\nX: ");
+			scanf("%d", &move_x);
+			printf("Y: ");
+			scanf("%d", &move_y);
+
+			//Gets the right space
+			move_x--;
+			move_y--;
+
+			move = gs_checkers_getSpaceState(game, move_y, move_x);
+
+		} while (move != gs_checkers_space_open);
+
+		//Move
+		if ((move_y == piece_y - 1) && ((move_x == piece_x + 1) || (move_x == piece_x - 1))) {
+			gs_checkers_setSpaceState(game, gs_checkers_space_white, move_y, move_x); //Move piece to space
+			gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+			good = 1; //Move Complete
+		}
+
+		//Jump Right
+		if ((move_y == piece_y - 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Left
+		if ((move_y == piece_y - 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		if (good == 0)
+			printf("ERROR: Move is Invalid\n");
+	} while (good == 0);
+}
+
+void gs_checkers_move_black_king(gs_checkers game, int piece_x, int piece_y) {
+	//Move info
+	int move_x, move_y;
+	gs_checkers_space_state move;
+
+	int good = 0;//Checks if move is good
+
+	do {
+		do {
+			//Get move info
+			printf("Select a place to move to\nX: ");
+			scanf("%d", &move_x);
+			printf("Y: ");
+			scanf("%d", &move_y);
+
+			//Gets the right space
+			move_x--;
+			move_y--;
+
+			move = gs_checkers_getSpaceState(game, move_y, move_x);
+
+			if (move != gs_checkers_space_open)
+				printf("ERROR: Selected Move Is Not Open\n");
+		} while (move != gs_checkers_space_open);
+
+		//Move
+		if (((move_y == piece_y + 1) || (move_y == piece_y - 1)) && ((move_x == piece_x + 1) || (move_x == piece_x - 1))) {
+			gs_checkers_setSpaceState(game, gs_checkers_space_black_king, move_y, move_x); //Move piece to space
+			gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+			good = 1; //Move Complete
+		}
+
+		//Jump Forward Right
+		if ((move_y == piece_y + 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Forward Left
+		if ((move_y == piece_y + 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Back Right
+		if ((move_y == piece_y - 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Back Left
+		if ((move_y == piece_y - 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_white) || (jump == gs_checkers_space_white_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_black_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+	} while (good == 0);
+}
+
+void gs_checkers_move_white_king(gs_checkers game, int piece_x, int piece_y) {
+	//Move info
+	int move_x, move_y;
+	gs_checkers_space_state move;
+
+	int good = 0;//Checks if move is good
+
+	do {
+		do {
+			//Get move info
+			printf("Select a place to move to\nX: ");
+			scanf("%d", &move_x);
+			printf("Y: ");
+			scanf("%d", &move_y);
+
+			//Gets the right space
+			move_x--;
+			move_y--;
+
+			move = gs_checkers_getSpaceState(game, move_y, move_x);
+
+			if (move != gs_checkers_space_open)
+				printf("ERROR: Selected Move Is Not Open\n");
+		} while (move != gs_checkers_space_open);
+
+		//Move
+		if (((move_y == piece_y + 1) || (move_y == piece_y - 1)) && ((move_x == piece_x + 1) || (move_x == piece_x - 1))) {
+			gs_checkers_setSpaceState(game, gs_checkers_space_white_king, move_y, move_x); //Move piece to space
+			gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+			good = 1; //Move Complete
+		}
+
+		//Jump Back Right
+		if ((move_y == piece_y + 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Back Left
+		if ((move_y == piece_y + 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y + 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y + 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Forward Right
+		if ((move_y == piece_y - 2) && (move_x == piece_x + 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x + 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x + 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+
+		//Jump Forward Left
+		if ((move_y == piece_y - 2) && (move_x == piece_x - 2)) {
+			gs_checkers_space_state jump = gs_checkers_getSpaceState(game, piece_y - 1, piece_x - 1); //Jumped piece
+			if ((jump == gs_checkers_space_black) || (jump == gs_checkers_space_black_king)) { //Check jumped piece is on opposite team
+				gs_checkers_setSpaceState(game, gs_checkers_space_white_king, move_y, move_x); //Move piece to space
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y - 1, piece_x - 1); //Clear jumped piece
+				gs_checkers_setSpaceState(game, gs_checkers_space_open, piece_y, piece_x); //Clear piece's previous space
+				good = 1; //Move Complete
+			}
+		}
+	} while (good == 0);
+}
 
 //-----------------------------------------------------------------------------
