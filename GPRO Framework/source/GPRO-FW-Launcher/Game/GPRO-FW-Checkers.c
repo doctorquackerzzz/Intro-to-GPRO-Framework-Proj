@@ -64,6 +64,10 @@ inline gs_checkers_index gs_checkers_reset(gs_checkers game)
 	return total;
 }
 
+//Colin's Functions
+void gs_checkers_userInput(gs_checkers);
+
+void gs_checkers_displayBoard(gs_checkers);
 
 //-----------------------------------------------------------------------------
 // DEFINITIONS
@@ -74,9 +78,48 @@ int launchCheckers()
 
 	gs_checkers_reset(game);
 
+		gs_checkers_displayBoard(game);
 
 
 	return 0;
+}
+
+void gs_checkers_userInput(gs_checkers game) {
+
+}
+
+//Displays the board
+void gs_checkers_displayBoard(gs_checkers game) {
+
+	const char DISPLAY[5][2] = { //Used to show the spaces on the board
+		' ', ' ',
+		'B', 'B',
+		'W', 'W',
+		'B', 'K',
+		'W', 'K'
+	};
+	gs_checkers_space_state currentSpace;
+
+	system("CLS"); //Cleans the screen
+
+	printf("\n\t\tCheckers\n\n");
+
+	for (int i = 0; i < GS_CHECKERS_BOARD_HEIGHT; i++) {
+		for (int j = 0; j < GS_CHECKERS_BOARD_WIDTH; j++) {
+			//Gets the space state
+			currentSpace = gs_checkers_getSpaceState(game, i, j);
+			//Prints the space to the screen
+			printf(" %c%c ", DISPLAY[currentSpace][0], DISPLAY[currentSpace][1]);
+			//Adds line for grid
+			if (j != 7)
+				printf("|");
+		}
+		//Adds line for grid
+		if (i != 7)
+			printf("\n---------------------------------------\n");
+		else
+			printf("\n\n");//Space for the end
+	}
 }
 
 
