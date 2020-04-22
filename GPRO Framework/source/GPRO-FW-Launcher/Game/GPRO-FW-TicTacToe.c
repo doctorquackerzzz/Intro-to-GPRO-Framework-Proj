@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 
 
 //-----------------------------------------------------------------------------
@@ -60,16 +61,125 @@ inline gs_tictactoe_index gs_tictactoe_reset(gs_tictactoe game)
 //-----------------------------------------------------------------------------
 // DEFINITIONS
 
+char TwoPlayerCreator(gs_tictactoe game, int i, int j)
+{
+	char XandO;
+	if (gs_tictactoe_getSpaceState(game, i, j) == 1)
+	{
+		XandO = 'X';
+	}
+	else if (gs_tictactoe_getSpaceState(game, i, j) == 2)
+	{
+		XandO = 'O';
+	}
+	else
+	{
+		XandO = ' ';
+	}
+	return XandO;
+}
+
+void boardCreation(gs_tictactoe game)
+{
+	int c;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			printf("|   %c", TwoPlayerCreator(game, i, j));
+		}
+		printf("\n-------------------\nX: "); 
+	}
+}
+
+char claimVictory(gs_tictactoe game)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		//check rows
+		if (gs_tictactoe_getSpaceState(game, i, 0) != 0 && gs_tictactoe_getSpaceState(game, i, 0) == gs_tictactoe_getSpaceState(game, i, 1) && gs_tictactoe_getSpaceState(game, i, 1) == gs_tictactoe_getSpaceState(game, i, 2))
+		{
+			return 1;
+		}
+		//check columns
+		else if (gs_tictactoe_getSpaceState(game, 0, i) != 0 && gs_tictactoe_getSpaceState(game, 0, i) == gs_tictactoe_getSpaceState(game, 1, i) && gs_tictactoe_getSpaceState(game, 1, i) == gs_tictactoe_getSpaceState(game, 2, i))
+		{
+			return 1;
+		}
+	}
+	//check diagonals
+	if (gs_tictactoe_getSpaceState(game, 0, 0) != 0 && gs_tictactoe_getSpaceState(game, 0, 0) == gs_tictactoe_getSpaceState(game, 1, 1) && gs_tictactoe_getSpaceState(game, 1, 1) == gs_tictactoe_getSpaceState(game, 2, 2))
+	{
+		return 1;
+	}
+	else if (gs_tictactoe_getSpaceState(game, 0, 2) != 0 && gs_tictactoe_getSpaceState(game, 0, 2) == gs_tictactoe_getSpaceState(game, 1, 1) && gs_tictactoe_getSpaceState(game, 1, 1) == gs_tictactoe_getSpaceState(game, 2, 0))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 int launchTicTacToe()
 {
 	gs_tictactoe game = { 0 };
 
 	gs_tictactoe_reset(game);
 
+	char turn = 'X';
+	int x, y, rounds = 1;
 
+	printf("Round %d\n", rounds);
+
+	boardCreation(game);
+
+	while (rounds <= 9 && claimVictory(game) == 0)
+	{
+		printf("Player %c turn", turn);
+
+		printf("Enter a row:");
+		scanf("%d", &x);
+
+		printf("Eneter a column:");
+		scanf("%d", &y);
+
+		if (turn == 'X' && gs_tictactoe_getSpaceState(game, x, y) == 0)
+		{
+			gs_tictactoe_setSpaceState(game, gs_tictactoe_space_x, x, y);
+			turn = 'O';
+			rounds++;
+		}
+		else if (turn == 'O' && gs_tictactoe_getSpaceState(game, x, y) == 0)
+		{
+			gs_tictactoe_setSpaceState(game, gs_tictactoe_space_o, x, y);
+			turn = 'X';
+			rounds++;
+		}
+		else
+		{
+			printf( "ERROR! ERROR! I AM ERROR! (haha funny Zelda 2 Joke, but still...)" );
+		}
+		printf("Round %d\n", rounds);
+		boardCreation(game);
+	}
+
+	if (turn == 'X')
+	{
+		printf( "Player 1 is the Winner!");
+	}
+	else if (turn == 'O')
+	{
+		printf("Player 2 is the winner!");
+	}
+	else
+	{
+		printf("GIDDYUP AND DRAW!");
+	}
+
+	gs_tictactoe_setSpaceState(game, gs_tictactoe_space_x, 0, 0);
 
 	return 0;
 }
 
 
-//-----------------------------------------------------------------------------
+//-----------------
